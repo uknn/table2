@@ -1,0 +1,109 @@
+<div class="table-container">
+
+  <div class="top-header">
+    <ng-content select="[header]"></ng-content>
+    <button class="menu" mat-icon-button [matMenuTriggerFor]="colMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </div>
+
+  <mat-menu #colMenu="matMenu">
+    <div cdkDropList (cdkDropListDropped)="reorderCols($event)">
+      <div mat-menu-item cdkDrag *ngFor="let col of columns" (click)="$event.stopPropagation()">
+        <mat-checkbox [ngModel]="col.isActive" (ngModelChange)="col.isActive = $event; updateColumns()">{{ col.key }}</mat-checkbox>
+      </div>
+    </div>
+  </mat-menu>
+
+  <div class="table-scroll-container">
+    <mat-table cdkDropList matSort [dataSource]="dataSource" (cdkDropListDropped)="drop($event)">
+
+      <ng-container *ngFor="let column of columns">
+        <ng-container [matColumnDef]="column.key">
+
+          <ng-container *ngIf="!column.headerTemplate">
+            <mat-header-cell *matHeaderCellDef [class.with-filter]="column.hasFiltering">
+              <div *ngIf="column.hasSorting" mat-sort-header="{{ column.key }}">{{ column.header }}</div>
+              <ng-container *ngIf="!column.hasSorting">{{ column.header }}</ng-container>
+              <input *ngIf="column.hasFiltering" (keyup)="dataSource.filterColumn($event.target.value, column.key)">
+            </mat-header-cell>
+          </ng-container>
+          <ng-container *ngIf="column.headerTemplate">
+            <mat-header-cell *matHeaderCellDef [class.with-filter]="column.hasFiltering">
+              <div *ngIf="column.hasSorting" mat-sort-header="{{ column.key }}">
+                <ng-template
+                  [ngTemplateOutletContext]="{ column: column, element: element, $implicit: element }"
+                  [ngTemplateOutlet]="column.headerTemplate">
+                </ng-template>
+              </div>
+              <ng-container *ngIf="!column.hasSorting">
+                <ng-template
+                  [ngTemplateOutletContext]="{ column: column, element: element, $implicit: element }"
+                  [ngTemplateOutlet]="column.headerTemplate">
+                </ng-template>
+              </ng-container>
+              <input *ngIf="column.hasFiltering" (keyup)="dataSource.filterColumn($event.target.value, column.key)">
+            </mat-header-cell>
+          </ng-container>
+
+          <ng-container *ngIf="!column.cellTemplate">
+            <mat-cell *matCellDef="let element"> 
+              {{ column.cell(element) }}
+            </mat-cell>
+          </ng-container>
+          <ng-container *ngIf="column.cellTemplate">
+            <mat-cell *matCellDef="let element">
+              <ng-template
+                [ngTemplateOutletContext]="{ column: column, element: element, $implicit: element }"
+                [ngTemplateOutlet]="column.cellTemplate">
+              </ng-template>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container *ngIf="!column.footerTemplate">
+            <mat-footer-cell *matFooterCellDef>{{ column.footer }}</mat-footer-cell>
+          </ng-container>
+          <ng-container *ngIf="column.footerTemplate">
+            <mat-footer-cell *matFooterCellDef="let element">
+              <ng-template
+                [ngTemplateOutletContext]="{ column: column, element: element, $implicit: element }"
+                [ngTemplateOutlet]="column.footerTemplate">
+              </ng-template>
+            </mat-footer-cell>
+          </ng-container>
+
+        </ng-container>
+      </ng-container>
+
+      <!-- Select Column -->
+      <ng-container matColumnDef="select">
+        <mat-header-cell *matHeaderCellDef class="select-col">
+          <input
+            type="checkbox" 
+            (change)="$event && masterToggle()"
+            [checked]="selection.hasValue() && isAllSelected()"
+            [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="select-col">
+          <input 
+            type="checkbox"
+            (click)="$event.stopPropagation()"
+            (change)="$event && selection.toggle(row)"
+            [checked]="selection.isSelected(row)">
+        </mat-cell>
+        <mat-footer-cell *matFooterCellDef class="select-col"></mat-footer-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="activeColumns; sticky: true"></mat-header-row>
+      <mat-row cdkDrag [cdkDragData]="row" *matRowDef="let row; columns: activeColumns" [class.selected]="selection.isSelected(row)" (click)="selection.toggle(row)"></mat-row>
+      <mat-footer-row *matFooterRowDef="activeColumns"></mat-footer-row>
+
+    </mat-table>
+  </div>
+
+  <div class="bottom-footer">
+    <ng-content select="[footer]"></ng-content>
+  </div>
+</div>
+
+<mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>

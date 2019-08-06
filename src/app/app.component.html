@@ -1,0 +1,27 @@
+<app-data-table [dataSource]="dataSource" [columnDefs]="columns">
+  <ng-container *columnHeader="'symbol'">SYMBOL</ng-container>
+
+  <ng-container *columnCell="'name'; let e">
+    <input (click)="$event.stopPropagation()" [(ngModel)]="e.name">
+  </ng-container>
+
+  <div *columnCell="'x'; let e" [appLinkRowHeights]="e.name">
+    <div *ngFor="let row of e.x">{{ row }}</div>
+  </div>
+
+  <div *columnCell="'y'; let e" [appLinkRowHeights]="e.name">
+    <div *ngFor="let row of e.y">{{ row }}</div>
+  </div>
+
+  <div *columnCell="'z'; let e" [appLinkRowHeights]="e.name">
+    <div *ngFor="let row of e.z">{{ row }}</div>
+  </div>
+
+  <ng-container *columnFooter="'y'">Y FOOTER</ng-container>
+
+  <ng-container header>
+    <input (keyup)="dataSource.filterGlobal($event.target.value)" placeholder="Filter">
+  </ng-container>
+
+  <span footer>Large footer</span>
+</app-data-table>
